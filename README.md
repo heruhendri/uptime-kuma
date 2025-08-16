@@ -115,6 +115,124 @@ I will assign requests/issues to the next milestone.
 
 https://github.com/louislam/uptime-kuma/milestones
 
+## 🪶 HOW TO HTTPS NATVPS INSTALL
+
+Oke 👍 saya jelaskan step by step bagaimana cara membuat **alamat HTTPS** untuk Uptime Kuma di VPS NAT (seperti NATVPS):
+
+---
+
+## 1. Pastikan Uptime Kuma Sudah Jalan
+
+Biasanya Kuma berjalan di port 3001
+Coba cek:
+
+```bash
+curl http://127.0.0.1:3001
+```
+
+Kalau tampil HTML/Uptime Kuma, berarti sudah OK.
+
+---
+
+## 2. Tentukan Nama Domain/Subdomain
+
+Agar bisa HTTPS, Kuma butuh domain/subdomain yang diarahkan ke VPS.
+
+* Misalnya: `monitor.domainanda.com`
+* Di DNS provider, arahkan A/AAAA record ke **IP publik NATVPS** Anda.
+
+---
+
+## 3. Reverse Proxy (Nginx / Caddy)
+
+Karena Kuma sendiri tidak langsung menyediakan SSL gratis, kita pakai **reverse proxy**.
+
+### 🔹 Install Nginx
+
+```bash
+sudo apt update && sudo apt install nginx -y
+```
+
+### 🔹 Konfigurasi Nginx untuk Kuma
+
+Buat file konfigurasi:
+
+```bash
+sudo nano /etc/nginx/sites-available/kuma
+```
+
+Isi dengan:
+
+```nginx
+server {
+    listen 80;
+    server_name monitor.domainanda.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Aktifkan config:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/kuma /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+Coba akses:
+👉 `http://monitor.domainanda.com`
+
+---
+
+## 4. Pasang SSL dengan Certbot (Let’s Encrypt)
+
+Install certbot:
+
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+```
+
+Jalankan:
+
+```bash
+sudo certbot --nginx -d monitor.domainanda.com
+```
+
+Ikuti wizard → otomatis akan mengubah config Nginx ke HTTPS.
+
+Setelah selesai:
+👉 `https://monitor.domainanda.com`
+
+---
+
+## 5. Auto Renew SSL
+
+Certbot sudah otomatis setup cronjob. Bisa test:
+
+```bash
+sudo certbot renew --dry-run
+```
+
+---
+
+## 6. (Opsional) Jika NAT VPS Tidak Support Port 80/443
+
+Kadang NAT VPS hanya buka port tertentu. Solusinya:
+
+* Gunakan **Cloudflare Tunnel / Argo Tunnel** (tanpa perlu port 80/443 terbuka).
+* Atau minta port forward 80/443 dari penyedia NAT VPS.
+
+---
+
+
+
 ## ❤️ Sponsors
 
 Thank you so much! (GitHub Sponsors will be updated manually. OpenCollective sponsors will be updated automatically, the list will be cached by GitHub though. It may need some time to be updated)
