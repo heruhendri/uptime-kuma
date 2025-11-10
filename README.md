@@ -115,7 +115,7 @@ I will assign requests/issues to the next milestone.
 
 https://github.com/louislam/uptime-kuma/milestones
 
-## 🪶 HOW TO HTTPS NATVPS INSTALL
+## 1 CARA INSTALL HTTPS KUMA DI NATVPS 
 
 Oke 👍 saya jelaskan step by step bagaimana cara membuat **alamat HTTPS** untuk Uptime Kuma di VPS NAT (seperti NATVPS):
 
